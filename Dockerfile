@@ -1,6 +1,25 @@
-FROM langflowai/langflow:latest
+FROM langflowai/langflow:1.5.0
 
-EXPOSE 7860
+# Install nginx
+RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
 
-CMD ["langflow", "run", "--host", "0.0.0.0", "--port", "7860"]
+# Create nginx config for iframe embedding
+RUN echo 'events { worker_connections 1024; } \
+http { \
+    server { \
+        listen 8080; \
+        location / { \
+            proxy_pass http://127.0.0.1:7860; \
+            proxy_set_header Host $host; \
+            proxy_set_header X-Real-IP $remote_addr; \
+            add_header X-Frame-Options "ALLOWALL" always; \
+            proxy_hide_header X-Frame-Options; \
+        } \
+    } \
+}' > /etc/nginx/nginx.conf
 
+# Expose port 8080
+EXPOSE 8080
+
+# Start nginx and langflow
+CMD nginx && langflow run --host 127.0.0.1 --port 7860
