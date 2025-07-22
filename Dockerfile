@@ -1,5 +1,8 @@
 FROM langflowai/langflow:1.5.0
 
+# Switch to root user to install packages
+USER root
+
 # Install nginx
 RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
 
@@ -22,4 +25,4 @@ http { \
 EXPOSE 8080
 
 # Start nginx and langflow
-CMD nginx && langflow run --host 127.0.0.1 --port 7860
+CMD ["sh", "-c", "nginx && langflow run --host 127.0.0.1 --port 7860"]
